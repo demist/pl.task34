@@ -1,13 +1,11 @@
 -module(atm).
--export([withdraw/2, gen/6]).
+-export([withdraw/2]).
 
 withdraw(Amount, Banknotes) ->
-    Vars = genpossible(Amount, Banknotes).
+    Vars = gen(0, 0, [], Banknotes, Amount, []),
+    Best = getResult(Amount, [], [], Vars, Banknotes),
+    Best.
     
-    
-genpossible(Amount, Banknotes) ->
-    gen(0, 0, [], Banknotes, Amount, []).
-
 gen(CurNumber, CurAmount, CurBanknotes, [], Amount, Unused) ->
     [];
 gen(CurNumber, CurAmount, CurBanknotes, [FirstRest | Rest], Amount, Unused) ->
@@ -27,5 +25,18 @@ gen(CurNumber, CurAmount, CurBanknotes, [FirstRest | Rest], Amount, Unused) ->
 	    Res = lists:append(Without, With);
 	Predict > Amount ->
 	    Res = Without
+    end,
+    Res.
+
+getResult(Number, [], RestBank, [], Banknotes) -> {get_another, [], Banknotes};
+
+getResult(Number, CurBank, RestBank, [], Banknotes) -> {ok, CurBank, RestBank};
+
+getResult(Number, CurBank, RestBank, [{NewNumber, NewRes, NewRest} | RestVars], Banknotes) ->
+    if 
+	NewNumber =< Number ->
+	    Res = getResult(NewNumber, NewRes, NewRest, RestVars, Banknotes);
+	NewNumber > Number ->
+	    Res = getResult(Number, CurBank, RestBank, RestVars, Banknotes)
     end,
     Res.
