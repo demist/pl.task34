@@ -1,10 +1,17 @@
 -module(atm).
--export([withdraw/2]).
+-export([widthdraw/2]).
 
-withdraw(Amount, Banknotes) ->
+widthdraw(Amount, []) ->
+    erlang:error(no_banknotes);
+
+widthdraw(0, Banknotes) ->
+    {ok, [], Banknotes};
+
+widthdraw(Amount, Banknotes) ->
     Vars = gen(0, 0, [], Banknotes, Amount, []),
-    Best = getResult(Amount, [], [], Vars, Banknotes),
-    Best.
+    {Status, Banks, Rest} = getResult(Amount, [], [], Vars, Banknotes),
+    SortedBanks = lists:sort(fun(L, R) -> R < L end, Banks),
+    {Status, SortedBanks, Rest}.
     
 gen(CurNumber, CurAmount, CurBanknotes, [], Amount, Unused) ->
     [];
@@ -28,7 +35,7 @@ gen(CurNumber, CurAmount, CurBanknotes, [FirstRest | Rest], Amount, Unused) ->
     end,
     Res.
 
-getResult(Number, [], RestBank, [], Banknotes) -> {get_another, [], Banknotes};
+getResult(Number, [], RestBank, [], Banknotes) -> {request_another_amount, [], Banknotes};
 
 getResult(Number, CurBank, RestBank, [], Banknotes) -> {ok, CurBank, RestBank};
 
