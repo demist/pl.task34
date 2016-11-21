@@ -37,7 +37,8 @@ gen(CurNumber, CurAmount, CurBanknotes, [FirstRest | Rest], Amount, Unused) ->
 
 getResult(_Number, [], _RestBank, [], Banknotes) -> {request_another_amount, [], Banknotes};
 
-getResult(_Number, CurBank, RestBank, [], _Banknotes) -> {ok, CurBank, RestBank};
+getResult(_Number, CurBank, RestBank, [], _Banknotes) -> 
+    {ok, CurBank, RestBank};
 
 getResult(Number, CurBank, RestBank, [{NewNumber, NewRes, NewRest} | RestVars], Banknotes) ->
     if 
