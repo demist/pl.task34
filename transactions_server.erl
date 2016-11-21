@@ -8,27 +8,31 @@ start_link() ->
     
 init([]) ->
     process_flag(trap_exit, true),
-    State = [],
-    {ok, State}.  
+    {ok, Ref} = dets:open_file(mydata, []),
+    State = dets:match(Ref, '$1'),
+    {ok, {State, Ref}}.  
     
-handle_call(history, _From, State) ->
-    {reply, State, State};
+handle_call(history, _From, {State, Ref}) ->
+    {reply, State, {State, Ref}};
    
-handle_call(_Message, _From, State) ->
-    {reply, invalid_command, State}.
+handle_call(_Message, _From, {State, Ref}) ->
+    {reply, invalid_command, {State, Ref}}.
     
-handle_cast({widthdraw, Amount}, State) ->
+handle_cast({widthdraw, Amount}, {State, Ref}) ->
     NewState = lists:append(State, Amount),
-    {noreply, NewState};
+    dets:insert(Ref, {Amount}),
+    {noreply, {NewState, Ref}};
     
-handle_cast(clear, _State) ->
+handle_cast(clear, {_State, Ref}) ->
     NewState = [],
-    {noreply, NewState};
+    {noreply, {NewState, Ref}};
 
 handle_cast(_Message, State) -> {noreply, State}.      
 
 handle_info(_Message, State) -> {noreply, State}.
 
-terminate(_Reason, _State) -> ok.
+terminate(_Reason, {_State, Ref}) -> 
+    dets:close(Ref),
+    ok.
 
 code_change(_OldVersion, State, _Extra) -> {ok, State}.
